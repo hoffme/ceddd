@@ -1,0 +1,36 @@
+{
+  "name": "ceddd",
+  "version": "0.1.0",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": "node build/index.js",
+    "dev": "ts-node-dev src/index.ts",
+    "lint": "npx eslint src",
+    "lint:fix": "npm run lint -- --fix",
+    "format": "npx prettier src --check",
+    "format:fix": "npm run prettier -- --write"
+  },
+  "keywords": [],
+  "author": "hoffme",
+  "license": "MIT",
+  "dependencies": {
+    "typescript": "^4.9.5",
+    "uuid": "^9.0.0",
+    "zod": "^3.20.6"
+  },
+  "devDependencies": {
+    "@types/uuid": "^9.0.1",
+    "@typescript-eslint/eslint-plugin": "^5.54.0",
+    "@typescript-eslint/parser": "^5.42.1",
+    "eslint": "^8.27.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^2.7.1"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  }
+}
