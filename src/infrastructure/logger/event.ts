@@ -1,4 +1,4 @@
-import { Event, EventLogger, EventSchema, EventTopic } from '../../domain/events';
+import { Event, EventLogger, EventSchema, EventTopic } from '../../events';
 
 import { Colors, log } from './log';
 

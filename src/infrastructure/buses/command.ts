@@ -10,7 +10,7 @@ import {
 	CommandTopic,
 	CommandHandler,
 	CommandLogger
-} from '../../domain/commands';
+} from '../../commands';
 
 export class MemoryCommandBus<S extends CommandSchema> implements CommandBus<S> {
 	private handlers: { [K in keyof CommandHandlers<S>]?: CommandHandlers<S>[K] } = {};

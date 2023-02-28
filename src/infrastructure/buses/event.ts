@@ -9,7 +9,7 @@ import {
 	EventTopic,
 	EventHandler,
 	EventLogger
-} from '../../domain/events';
+} from '../../events';
 
 export class MemoryEventBus<S extends EventSchema> implements EventBus<S> {
 	private readonly handlers: {

@@ -1,4 +1,4 @@
-import { Command, CommandSchema, CommandLogger } from '../../domain/commands';
+import { Command, CommandSchema, CommandLogger } from '../../commands';
 
 import { Colors, log } from './log';
 
