@@ -69,18 +69,18 @@ export const SignInCommandResolver = new CommandResolver({
 	] as const,
 	dependences: {
 		commands: [
-            // Array of command defintions to dispath in method
-        ] as const,
+            		// Array of command defintions to dispath in method
+        	] as const,
 		events: [
-            // Array of events defintions to emit in method 
-        ] as const,
+            		// Array of events defintions to emit in method 
+        	] as const,
 		infra: async () => {
-            // Setup infrastructure of resolver
-            return {}
-        }
+            		// Setup infrastructure of resolver
+            		return {}
+        	}
 	},
 	method: async ({ cmd, infra, commands, events, errors }) => {
-        // implement
+        	// implement
 	}
 });
 ```
@@ -132,7 +132,7 @@ const main = async () => {
 		const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 		const userAgent = req.headers['user-agent'];
 
-		commandBus
+		command
 			.dispath({
 				ctx: {
 					trace: [],
