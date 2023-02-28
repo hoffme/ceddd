@@ -1,6 +1,6 @@
 import { Command, CommandSchema, CommandLogger } from '../../commands';
 
-import { Colors, log } from './log';
+import { log } from './log';
 
 export class CLILoggerCommand implements CommandLogger<CommandSchema> {
 	public init<T extends keyof CommandSchema>(cmd: Command<T, CommandSchema[T]['data']>): void {
@@ -12,10 +12,7 @@ export class CLILoggerCommand implements CommandLogger<CommandSchema> {
 		);
 	}
 
-	public success<T extends keyof CommandSchema>(
-		cmd: Command<T, CommandSchema[T]['data']>,
-		_: CommandSchema[T]['result']
-	): void {
+	public success<T extends keyof CommandSchema>(cmd: Command<T, CommandSchema[T]['data']>): void {
 		const duration = new Date().getTime() - new Date(cmd.datetime).getTime();
 		log(
 			['Gray', new Date().toISOString()],

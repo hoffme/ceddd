@@ -1,6 +1,6 @@
 import { Event, EventLogger, EventSchema, EventTopic } from '../../events';
 
-import { Colors, log } from './log';
+import { log } from './log';
 
 export class CLILoggerEvent implements EventLogger<EventSchema> {
 	public init<T extends EventTopic>(evt: Event<T, EventSchema[T]['data']>): void {
