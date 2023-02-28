@@ -1,6 +1,6 @@
 # CEDDD
 
-Framework to structure a proyect with DDD, testing, types end to end, verification params.
+Library to structure a proyect with DDD, testing, types end to end, verification params.
 
 ## Entities
 
