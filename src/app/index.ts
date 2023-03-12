@@ -1,4 +1,4 @@
-import { CommandBus, CommandZodSchema, EventBus, EventZodSchema, JoinSchemas } from '../messages';
+import { CommandBus, CommandZodSchema, EventBus, EventZodSchema } from '../messages';
 import { ModuleInferCommandSchema, ModuleInferEventSchema, ModuleTuple } from '../module';
 
 // App
@@ -34,13 +34,21 @@ export class App<M extends ModuleTuple> {
 
 // Infers
 
-type InferCommandSchema<M extends ModuleTuple> = JoinSchemas<{
-	[K in keyof M]: ModuleInferCommandSchema<M[K]>;
-}>;
+type InferCommandSchema<M extends ModuleTuple> = {
+	[K in keyof ModuleInferCommandSchema<M[number]>]: {
+		[N in keyof M]: K extends keyof ModuleInferCommandSchema<M[N]>
+			? ModuleInferCommandSchema<M[N]>[K]
+			: never;
+	}[number];
+};
 
-type InferEventSchema<M extends ModuleTuple> = JoinSchemas<{
-	[K in keyof M]: ModuleInferEventSchema<M[K]>;
-}>;
+type InferEventSchema<M extends ModuleTuple> = {
+	[K in keyof ModuleInferEventSchema<M[number]>]: {
+		[N in keyof M]: K extends keyof ModuleInferEventSchema<M[N]>
+			? ModuleInferEventSchema<M[N]>[K]
+			: never;
+	}[number];
+};
 
 export type AppInferCommandSchema<A extends App<ModuleTuple>> = InferCommandSchema<A['modules']>;
 
