@@ -15,11 +15,6 @@ type EventResolverTuple = readonly EventResolver<any, any, any, any, any, any>[]
 
 // Props
 
-type SetupParams<CRT extends CommandResolverTuple, ERT extends EventResolverTuple> = {
-	commands: { [K in keyof CRT]: CRT[K]['definition']['topic'] };
-	events: { [K in keyof ERT]: ERT[K]['definition']['topic'] };
-};
-
 type SetupResult<CRT extends CommandResolverTuple, ERT extends EventResolverTuple> = {
 	commands: {
 		[K in CRT[number]['definition']['topic']]: {
@@ -38,7 +33,7 @@ type SetupResult<CRT extends CommandResolverTuple, ERT extends EventResolverTupl
 };
 
 interface ModuleProps<CRT extends CommandResolverTuple, ERT extends EventResolverTuple> {
-	setup: (params: SetupParams<CRT, ERT>) => Promise<SetupResult<CRT, ERT>>;
+	setup: () => Promise<SetupResult<CRT, ERT>>;
 	resolvers: {
 		commands: CRT;
 		events: ERT;
@@ -60,7 +55,7 @@ export class Module<CRT extends CommandResolverTuple, ERT extends EventResolverT
 		commands: CommandZodSchema<InferCommandSchema<CRT, ERT>>;
 		events: EventZodSchema<InferEventSchema<CRT, ERT>>;
 	};
-	protected readonly setup: (params: SetupParams<CRT, ERT>) => Promise<SetupResult<CRT, ERT>>;
+	protected readonly setup: () => Promise<SetupResult<CRT, ERT>>;
 
 	constructor(props: ModuleProps<CRT, ERT>) {
 		this.resolvers = props.resolvers;
@@ -91,12 +86,7 @@ export class Module<CRT extends CommandResolverTuple, ERT extends EventResolverT
 		commands: CommandBus<InferCommandSchema<CRT, ERT>>;
 		events: EventBus<InferEventSchema<CRT, ERT>>;
 	}): Promise<void> {
-		const resolverTopics = {
-			commands: this.resolvers.commands.map((resolver) => resolver.definition.topic),
-			events: this.resolvers.events.map((resolver) => resolver.definition.topic)
-		} as SetupParams<CRT, ERT>;
-
-		const infrastructure = await this.setup(resolverTopics);
+		const infrastructure = await this.setup();
 
 		for (const resolver of this.resolvers.commands) {
 			const infra = infrastructure[resolver.definition.topic as keyof typeof infrastructure];
