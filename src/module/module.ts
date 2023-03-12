@@ -15,6 +15,11 @@ type EventResolverTuple = readonly EventResolver<any, any, any, any, any, any>[]
 
 // Props
 
+type SetupParams<CRT extends CommandResolverTuple, ERT extends EventResolverTuple> = {
+	commands: { [K in keyof CRT]: CRT[K]['definition']['topic'] };
+	events: { [K in keyof ERT]: ERT[K]['definition']['topic'] };
+};
+
 type SetupResult<CRT extends CommandResolverTuple, ERT extends EventResolverTuple> = {
 	commands: {
 		[K in CRT[number]['definition']['topic']]: {
@@ -33,7 +38,7 @@ type SetupResult<CRT extends CommandResolverTuple, ERT extends EventResolverTupl
 };
 
 interface ModuleProps<CRT extends CommandResolverTuple, ERT extends EventResolverTuple> {
-	setup: () => Promise<SetupResult<CRT, ERT>>;
+	setup: (params: SetupParams<CRT, ERT>) => Promise<SetupResult<CRT, ERT>>;
 	resolvers: {
 		commands: CRT;
 		events: ERT;
@@ -51,41 +56,47 @@ export class Module<CRT extends CommandResolverTuple, ERT extends EventResolverT
 		readonly commands: CRT;
 		readonly events: ERT;
 	};
-	protected readonly setup: () => Promise<SetupResult<CRT, ERT>>;
+	public readonly schemas: {
+		commands: CommandZodSchema<InferCommandSchema<CRT, ERT>>;
+		events: EventZodSchema<InferEventSchema<CRT, ERT>>;
+	};
+	protected readonly setup: (params: SetupParams<CRT, ERT>) => Promise<SetupResult<CRT, ERT>>;
 
 	constructor(props: ModuleProps<CRT, ERT>) {
 		this.resolvers = props.resolvers;
 		this.setup = props.setup;
-	}
 
-	public get schemas() {
-		const commands = Object.fromEntries(
-			[
-				...this.resolvers.commands.map((resolver) => resolver.definition),
-				...this.resolvers.commands.flatMap((resolver) => resolver.effects.commands),
-				...this.resolvers.events.flatMap((resolver) => resolver.effects.commands)
-			].map((definition) => [
-				definition.topic,
-				{ data: definition.data, result: definition.result }
-			])
-		) as CommandZodSchema<InferCommandSchema<CRT, ERT>>;
-
-		const events = Object.fromEntries(
-			[
-				...this.resolvers.events.map((resolver) => resolver.definition),
-				...this.resolvers.events.flatMap((resolver) => resolver.effects.events),
-				...this.resolvers.events.flatMap((resolver) => resolver.effects.events)
-			].map((definition) => [definition.topic, { data: definition.data }])
-		) as EventZodSchema<InferEventSchema<CRT, ERT>>;
-
-		return { commands, events };
+		this.schemas = {
+			commands: Object.fromEntries(
+				[
+					...this.resolvers.commands.map((resolver) => resolver.definition),
+					...this.resolvers.commands.flatMap((resolver) => resolver.effects.commands),
+					...this.resolvers.events.flatMap((resolver) => resolver.effects.commands)
+				].map((definition) => [
+					definition.topic,
+					{ data: definition.data, result: definition.result }
+				])
+			) as CommandZodSchema<InferCommandSchema<CRT, ERT>>,
+			events: Object.fromEntries(
+				[
+					...this.resolvers.events.map((resolver) => resolver.definition),
+					...this.resolvers.events.flatMap((resolver) => resolver.effects.events),
+					...this.resolvers.events.flatMap((resolver) => resolver.effects.events)
+				].map((definition) => [definition.topic, { data: definition.data }])
+			) as EventZodSchema<InferEventSchema<CRT, ERT>>
+		};
 	}
 
 	public async init(props: {
 		commands: CommandBus<InferCommandSchema<CRT, ERT>>;
 		events: EventBus<InferEventSchema<CRT, ERT>>;
 	}): Promise<void> {
-		const infrastructure = await this.setup();
+		const resolverTopics = {
+			commands: this.resolvers.commands.map((resolver) => resolver.definition.topic),
+			events: this.resolvers.events.map((resolver) => resolver.definition.topic)
+		} as SetupParams<CRT, ERT>;
+
+		const infrastructure = await this.setup(resolverTopics);
 
 		for (const resolver of this.resolvers.commands) {
 			const infra = infrastructure[resolver.definition.topic as keyof typeof infrastructure];
