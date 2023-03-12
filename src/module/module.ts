@@ -89,7 +89,10 @@ export class Module<CRT extends CommandResolverTuple, ERT extends EventResolverT
 		const infrastructure = await this.setup();
 
 		for (const resolver of this.resolvers.commands) {
-			const infra = infrastructure[resolver.definition.topic as keyof typeof infrastructure];
+			const infra =
+				infrastructure.commands[
+					resolver.definition.topic as keyof typeof infrastructure.commands
+				];
 
 			resolver.deps = {
 				infra: infra,
@@ -101,7 +104,10 @@ export class Module<CRT extends CommandResolverTuple, ERT extends EventResolverT
 		}
 
 		for (const resolver of this.resolvers.events) {
-			const infra = infrastructure[resolver.definition.topic as keyof typeof infrastructure];
+			const infra =
+				infrastructure.events[
+					resolver.definition.topic as keyof typeof infrastructure.events
+				];
 
 			resolver.deps = {
 				infra: infra,
