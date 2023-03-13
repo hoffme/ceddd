@@ -1,33 +1,53 @@
 import { CommandBus, CommandZodSchema, EventBus, EventZodSchema } from '../messages';
 import { ModuleInferCommandSchema, ModuleInferEventSchema, ModuleTuple } from '../module';
 
+// Types
+
+type SetupResult<M extends ModuleTuple> = {
+	[K in M[number]['name']]: {
+		[N in keyof M]: K extends M[N]['name'] ? Parameters<M[N]['init']>[0]['infra'] : never;
+	}[number];
+};
+
 // App
 
 export class App<M extends ModuleTuple> {
 	public readonly modules: M;
+	public readonly schemas: {
+		commands: CommandZodSchema<InferCommandSchema<M>>;
+		events: EventZodSchema<InferEventSchema<M>>;
+	};
 
-	constructor(props: { modules: M }) {
+	private readonly setup: () => Promise<SetupResult<M>>;
+
+	constructor(props: { modules: M; setup: () => Promise<SetupResult<M>> }) {
 		this.modules = props.modules;
-	}
+		this.setup = props.setup;
 
-	public get schemas() {
-		const commands = Object.fromEntries(
-			this.modules.flatMap((module) => Object.entries(module.schemas.commands))
-		) as CommandZodSchema<InferCommandSchema<M>>;
-
-		const events = Object.fromEntries(
-			this.modules.flatMap((module) => Object.entries(module.schemas.events))
-		) as EventZodSchema<InferEventSchema<M>>;
-
-		return { commands, events };
+		this.schemas = {
+			commands: Object.fromEntries(
+				this.modules.flatMap((module) => Object.entries(module.schemas.commands))
+			) as CommandZodSchema<InferCommandSchema<M>>,
+			events: Object.fromEntries(
+				this.modules.flatMap((module) => Object.entries(module.schemas.events))
+			) as EventZodSchema<InferEventSchema<M>>
+		};
 	}
 
 	public async init(props: {
 		commands: CommandBus<InferCommandSchema<M>>;
 		events: EventBus<InferEventSchema<M>>;
 	}) {
+		const infra = await this.setup();
+
 		for (const module of this.modules) {
-			await module.init(props);
+			const infraModule = infra[module.name as keyof SetupResult<M>];
+
+			await module.init({
+				infra: infraModule,
+				commands: props.commands,
+				events: props.events
+			});
 		}
 	}
 }

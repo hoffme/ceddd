@@ -32,8 +32,14 @@ type SetupResult<CRT extends CommandResolverTuple, ERT extends EventResolverTupl
 	};
 };
 
-interface ModuleProps<CRT extends CommandResolverTuple, ERT extends EventResolverTuple> {
-	setup: () => Promise<SetupResult<CRT, ERT>>;
+interface ModuleProps<
+	N extends string,
+	CRT extends CommandResolverTuple,
+	ERT extends EventResolverTuple,
+	I = never
+> {
+	name: N;
+	setup: (params: I) => Promise<SetupResult<CRT, ERT>>;
 	resolvers: {
 		commands: CRT;
 		events: ERT;
@@ -42,11 +48,17 @@ interface ModuleProps<CRT extends CommandResolverTuple, ERT extends EventResolve
 
 // Tuple
 
-export type ModuleTuple = readonly Module<CommandResolverTuple, EventResolverTuple>[];
+export type ModuleTuple = readonly Module<string, CommandResolverTuple, EventResolverTuple, any>[];
 
 // Module
 
-export class Module<CRT extends CommandResolverTuple, ERT extends EventResolverTuple> {
+export class Module<
+	N extends string,
+	CRT extends CommandResolverTuple,
+	ERT extends EventResolverTuple,
+	I = never
+> {
+	public readonly name: N;
 	public readonly resolvers: {
 		readonly commands: CRT;
 		readonly events: ERT;
@@ -55,9 +67,10 @@ export class Module<CRT extends CommandResolverTuple, ERT extends EventResolverT
 		commands: CommandZodSchema<InferCommandSchema<CRT, ERT>>;
 		events: EventZodSchema<InferEventSchema<CRT, ERT>>;
 	};
-	protected readonly setup: () => Promise<SetupResult<CRT, ERT>>;
+	private readonly setup: (params: I) => Promise<SetupResult<CRT, ERT>>;
 
-	constructor(props: ModuleProps<CRT, ERT>) {
+	constructor(props: ModuleProps<N, CRT, ERT, I>) {
+		this.name = props.name;
 		this.resolvers = props.resolvers;
 		this.setup = props.setup;
 
@@ -85,8 +98,9 @@ export class Module<CRT extends CommandResolverTuple, ERT extends EventResolverT
 	public async init(props: {
 		commands: CommandBus<InferCommandSchema<CRT, ERT>>;
 		events: EventBus<InferEventSchema<CRT, ERT>>;
+		infra: I;
 	}): Promise<void> {
-		const infrastructure = await this.setup();
+		const infrastructure = await this.setup(props.infra);
 
 		for (const resolver of this.resolvers.commands) {
 			const infra =
@@ -182,15 +196,18 @@ type InferEventSchema<
 		: never;
 };
 
-export type ModuleInferCommandSchema<M extends Module<CommandResolverTuple, EventResolverTuple>> =
-	InferCommandSchema<M['resolvers']['commands'], M['resolvers']['events']>;
+export type ModuleInferCommandSchema<
+	M extends Module<string, CommandResolverTuple, EventResolverTuple>
+> = InferCommandSchema<M['resolvers']['commands'], M['resolvers']['events']>;
 
-export type ModuleInferEventSchema<M extends Module<CommandResolverTuple, EventResolverTuple>> =
-	InferEventSchema<M['resolvers']['commands'], M['resolvers']['events']>;
+export type ModuleInferEventSchema<
+	M extends Module<string, CommandResolverTuple, EventResolverTuple>
+> = InferEventSchema<M['resolvers']['commands'], M['resolvers']['events']>;
 
 export type ModuleInferCommandZodSchema<
-	M extends Module<CommandResolverTuple, EventResolverTuple>
+	M extends Module<string, CommandResolverTuple, EventResolverTuple>
 > = CommandZodSchema<ModuleInferCommandSchema<M>>;
 
-export type ModuleInferEventZodSchema<M extends Module<CommandResolverTuple, EventResolverTuple>> =
-	EventZodSchema<ModuleInferEventSchema<M>>;
+export type ModuleInferEventZodSchema<
+	M extends Module<string, CommandResolverTuple, EventResolverTuple>
+> = EventZodSchema<ModuleInferEventSchema<M>>;
