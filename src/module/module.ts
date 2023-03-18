@@ -89,7 +89,7 @@ export class Module<
 				[
 					...this.resolvers.events.map((resolver) => resolver.definition),
 					...this.resolvers.events.flatMap((resolver) => resolver.effects.events),
-					...this.resolvers.events.flatMap((resolver) => resolver.effects.events)
+					...this.resolvers.commands.flatMap((resolver) => resolver.effects.events)
 				].map((definition) => [definition.topic, { data: definition.data }])
 			) as EventZodSchema<InferEventSchema<CRT, ERT>>
 		};
