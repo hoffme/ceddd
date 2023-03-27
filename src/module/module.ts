@@ -11,7 +11,7 @@ import { CommandResolver, EventResolver } from '../resolver';
 
 type CommandResolverTuple = readonly CommandResolver<any, any, any, any, any, any, any>[];
 
-type EventResolverTuple = readonly EventResolver<any, any, any, any, any, any>[];
+type EventResolverTuple = readonly EventResolver<string, any, any, any, any, any, any>[];
 
 // Props
 
@@ -24,8 +24,8 @@ type SetupResult<CRT extends CommandResolverTuple, ERT extends EventResolverTupl
 		}[number];
 	};
 	events: {
-		[K in ERT[number]['definition']['topic']]: {
-			[N in keyof ERT]: ERT[N]['definition']['topic'] extends K
+		[K in ERT[number]['name']]: {
+			[N in keyof ERT]: ERT[N]['name'] extends K
 				? Exclude<ERT[N]['deps'], undefined>['infra']
 				: never;
 		}[number];
@@ -119,9 +119,7 @@ export class Module<
 
 		for (const resolver of this.resolvers.events) {
 			const infra =
-				infrastructure.events[
-					resolver.definition.topic as keyof typeof infrastructure.events
-				];
+				infrastructure.events[resolver.name as keyof typeof infrastructure.events];
 
 			resolver.deps = {
 				infra: infra,

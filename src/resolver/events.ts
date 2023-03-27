@@ -28,6 +28,7 @@ interface EventResolveMethodProps<
 }
 
 interface EventResolverProps<
+	NAM extends string,
 	TOP extends EventTopic,
 	DAT extends JSONValue,
 	ERR extends DomainErrorTuple,
@@ -35,7 +36,7 @@ interface EventResolverProps<
 	EVT extends EventDefinitionTuple,
 	INF
 > {
-	name: string;
+	name: NAM;
 	infrastructure: INF;
 	definition: EventDefinition<TOP, DAT>;
 	effects: {
@@ -49,6 +50,7 @@ interface EventResolverProps<
 // resolver
 
 export class EventResolver<
+	NAM extends string,
 	TOP extends EventTopic,
 	DAT extends JSONValue,
 	ERR extends DomainErrorTuple,
@@ -59,7 +61,7 @@ export class EventResolver<
 	// properties
 
 	public readonly id: string;
-	public readonly name: string;
+	public readonly name: NAM;
 	public readonly definition: EventDefinition<TOP, DAT>;
 	public readonly effects: {
 		readonly commands: CMD;
@@ -76,7 +78,7 @@ export class EventResolver<
 		readonly infra: INF;
 	};
 
-	constructor(props: EventResolverProps<TOP, DAT, ERR, CMD, EVT, INF>) {
+	constructor(props: EventResolverProps<NAM, TOP, DAT, ERR, CMD, EVT, INF>) {
 		this.id = uuidV4();
 		this.name = props.name;
 		this.definition = props.definition;
